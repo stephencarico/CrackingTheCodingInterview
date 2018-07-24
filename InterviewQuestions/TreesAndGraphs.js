@@ -3,189 +3,179 @@
 ///////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
-// --------------------- FOUNDATION --------------------- //
-////////////////////////////////////////////////////////////
-
-class Graph {
-  constructor(val) {
-   this.value = val;
-   this.adjList = []; 
-  }
-}
-
-class Node {
-  constructor(value) {
-    this.value = value;
-    this.left = null;
-    this.right = null;
-  }
-}
-
-class Tree {
-  constructor() {
-    this.root = null;
-  }
-}
-
-const graph = new Graph();
-const tree = new Tree();
-
-////////////////////////////////////////////////////////////
 // --------------- INTERVIEW QUESTIONS ------------------ //
 ////////////////////////////////////////////////////////////
+
+var BST = require('./../util/BST');
+var Graph = require('./../util/Graph');
+var LinkedList = require('./../util/LinkedList')
+var Queue = require('./../util/Queue');
+var Stack = require('./../util/Stack');
+var Tree = require('./../util/Tree');
 
 // //////////////////////////////////// //
 // ------ 4.1 ROUTE BETWEEN NODES ----- //
 // //////////////////////////////////// //
 
-Graph.prototype.addVertex = function(vertex) {
-  this.adjList[vertex] = [];
-}
+// concurrently implement BFS on both sides of the graph
+// intention is to minimise the levels that the graph has to search
 
-Graph.prototype.addEdge = function(vertex1, vertex2) {
-  this.adjList[vertex1].push(vertex2);
-}
-
-// DEPTH FIRST SEARCH
-Graph.prototype.dfs = function() {
-  const nodes = Object.keys(this.adjList);
-  const visited = {};
-
-  for (var i = 0; i < nodes.length; i++) {
-    const node = nodes[i];
-    this._dfsUtility(node, visited);
-  }
-}
-
-Graph.prototype._dfsUtility = function(vertex, visited) {
-  if(!visited[vertex]) {
-    visited[vertex] = true;
-    console.log(vertex, visited)
-    const neighbors = this.adjList[vertex]
-
-    for(var i = 0; i < neighbors.length; i++) {
-      const neighbor = neighbors[i];
-
-      this._dfsUtility(neighbor, visited)
+var checkRoute = function(value1, value2, graph) {
+  var q1 = new Queue();
+  var q2 = new Queue();
+  var visited1 = {};
+  var visited2 = {}; 
+  // insert values into qs
+  visited1[value1] = true;
+  visited2[value2] = true;
+  if(graph.hasNode(value1)) {
+    for (var edge in graph.findEdges(value1)) {
+      q1.add(edge);
     }
   }
-}
-
-// CYCLE DETECTION
-Graph.prototype.detectCycle = function() {
-  const graphNodes = Object.keys(this.adjList);
-  const visited = {};
-  const recStack = {};
-
-  for(var i = 0; i < graphNodes.length; i++) {
-    const node = graphNodes[i];
-
-    if(this._detectCycleUtility(node, visited, recStack)) {
-      return 'There is a cycle!'
+  if(graph.hasNode(value2)) {
+    for (var edge in graph.findEdges(value2)) {
+      q2.add(edge);
     }
   }
-  console.log(recStack)
-  return 'There is no cycle!'
-}
-
-Graph.prototype._detectCycleUtility = function(vertex, visited, recStack) {
-  if(!visited[vertex]) {
-    visited[vertex] = true;
-    recStack[vertex] = true;
-    const nodeNeighbors = this.adjList[vertex];
-
-    for (var i = 0; i < nodeNeighbors.length; i++) {
-      const currentNode = nodeNeighbors[i];
-        console.log('Parent', vertex, 'Child', currentNode)
-      if(!visited[currentNode] && this._detectCycleUtility(currentNode, visited, recStack)) {
-        return true
-      } else if (recStack[currentNode]) {
+  // take turns dequeueing until empty
+  var nextEdge1;
+  var nextEdge2;
+  while (!q1.isEmpty() || !q2.isEmpty()) {
+    // if has queue, return true
+    if (!q1.isEmpty()) {
+      nextEdge1 = q1.remove();
+      if (nextEdge1 === value2) {
         return true;
+      }
+      if (visited1[nextEdge1] === undefined) {
+        visited1[nextEdge1] = true;
+        if(graph.hasNode(nextEdge1)) {
+          for (var edge in graph.findEdges(nextEdge1)) {
+            q1.add(edge);
+          }
+        }
+      }
+    }
+    if (!q2.isEmpty()) {
+      nextEdge2 = q2.remove();
+      if (nextEdge2 === value1) {
+        return true;
+      }
+      if (visited2[nextEdge2] === undefined) {
+        visited2[nextEdge2] = true;
+        if(graph.hasNode(nextEdge2)) {
+          for (var edge in graph.findEdges(nextEdge2)) {
+            q2.add(edge);
+          }
+        }
       }
     }
   }
-  recStack[vertex] = false;
+  // return false
   return false;
-}
+};
 
-// TESTING
-
-// graph.addVertex('A');
-// graph.addVertex('B');
-// graph.addVertex('C');
-// graph.addVertex('D');
-// graph.addVertex('E');
+/* TEST */
+// var graph = new Graph();
+// graph.addNode('A');
+// graph.addNode('B');
+// graph.addNode('C');
+// graph.addNode('D');
+// graph.addNode('E');
 
 // graph.addEdge('A', 'B');
-// graph.addEdge('D', 'E');
-// graph.addEdge('C', 'E');
-// graph.addEdge('A', 'D');
 // graph.addEdge('A', 'C');
-// graph.addEdge('E', 'B');
-// graph.addEdge('D', 'B');
-// graph.addEdge('D', 'A');
+// graph.addEdge('B', 'C');
 
-// graph.dfs();
-// console.log(graph.detectCycle())
+// graph.addEdge('D', 'E');
+
+
+// console.log(checkRoute('A', 'C', graph), true);
+// console.log(checkRoute('A', 'E', graph), false);
+// console.log(checkRoute('B', 'A', graph), true);
+// console.log(checkRoute('D', 'E', graph), true);
 
 // //////////////////////////////////// //
 // ---------- 4.2 MINIMAL TREE -------- //
 // //////////////////////////////////// //
-Tree.prototype.add = function(val) {
-  var node = new Node(val);
-  if(!this.root) {
-    this.root = node
-    return;
-  }
 
-  var currentNode = this.root;
+// Approach: divide and conquer, array and insert into tree
 
-  while(currentNode) {
-    if(val < currentNode.value) {
-      if(!currentNode.left) {
-        currentNode.left = node;
-        break;
-      } else {
-        currentNode = currentNode.left;
-      }
-    } else {
-      if(!currentNode.right) {
-        currentNode.right = node;
-        break;
-      } else {
-      currentNode = currentNode.right;
-      }
+var insertBalanced = function(array) {
+  var bst = new BST();
+  var q = new Queue();
+  var currArr;
+  var floor = Math.floor;
+  q.add(array);
+  while (!q.isEmpty()) {
+    currArr = q.remove();
+    bst.insert(currArr[floor(currArr.length/2)]);
+    if (currArr.slice(0, floor(currArr.length/2)).length > 0) {
+      q.add(currArr.slice(0, floor(currArr.length/2)));
+    }
+    if (currArr.slice(floor(currArr.length/2) + 1).length > 0) {
+      q.add(currArr.slice(floor(currArr.length/2) + 1));
     }
   }
-}
+  return bst;
+};
 
-function makeBalancedTree(values) {
-  let tree = new Tree();
-  if (values && values.length) {
-    add(tree, values, 0, values.length - 1)
-  }
-  return tree;
-}
+/* TEST */
+// var arr1 = [1, 2, 3, 4, 5, 6];
+// var tree1 = insertBalanced(arr1);
+// tree1.printLevelOrder();
 
-function add(tree, values, start, end) {
-  if (start === end) {
-    tree.add(values[start])
-  } else if (start < end) {
-    let mid = start + Math.floor((end - start) / 2);
-    tree.add(values[mid]);
-    add(tree, values, start, mid - 1);
-    add(tree, values, mid + 1, end);
-  }
-}
-
-const test1 = [1, 2, 3, 4, 5]
-
-console.log(makeBalancedTree(test1))
+// var arr2 = [1, 2, 3, 4, 5, 6, 7];
+// var tree2 = insertBalanced(arr2);
+// tree2.printLevelOrder();
 
 // /////////////////////////////// //
 // ------ 4.3 LIST OF DEPTHS ----- //
 // /////////////////////////////// //
 
+function listOfDepths(bst) {
+  var listOfLists = [];
+  var list = null;
+  var newNode;
+  var q = new Queue();
+  var nextq = new Queue();
+  var currNode = bst;
+
+  q.add(currNode);
+  while (!q.isEmpty()) {
+    currNode = q.remove();
+    newNode = new LinkedList(currNode.value);
+    newNode.next = list;
+    list = newNode;
+    if (currNode.left !== null) {
+      nextq.add(currNode.left);
+    }
+    if (currNode.right !== null) {
+      nextq.add(currNode.right);
+    }
+    if (q.isEmpty()) {
+      listOfLists.push(list);
+      list = null;
+      q = nextq;
+      nextq = new Queue();
+    }
+  }
+  return listOfLists;
+}
+
+
+/* TEST */
+// 1, 2, 3, 4, 5, 6, 7
+var tree = new BST(4);
+tree.insert(2);
+tree.insert(6);
+tree.insert(1);
+tree.insert(3);
+tree.insert(5);
+tree.insert(7);
+
+console.log(listOfDepths(tree));
 
 
 // /////////////////////////////// //
