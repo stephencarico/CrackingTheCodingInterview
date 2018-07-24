@@ -194,7 +194,7 @@ var testString = 'abcd';
 /* TEST */
 
 var testString = 'abcd';
-// console.log(permuteString(testString));
+console.log(permuteString(testString));
 
 
 // ////////////////////////////////////////////////// //
