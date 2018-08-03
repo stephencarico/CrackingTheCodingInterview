@@ -138,9 +138,41 @@ function listOfDepths(bst) {
   var listOfLists = [];
   var list = null;
   var newNode;
-  var q = new Queue();
-  var nextq = new Queue();
-  var currNode = bst;
+  var q = new Queue(); // {front: null, back: null}
+  var nextq = new Queue(); // {front: null, back: null}
+  var currNode = bst; 
+  /*
+    {
+      value: 4,
+      left: {
+        value: 2,
+        left: {
+          value: 1,
+          left: null,
+          right: null
+        },
+        right: {
+          value: 3,
+          left: null,
+          right: null
+        }
+      },
+      right: {
+        value: 6,
+        left: {
+          value: 5,
+          left: null,
+          right: null
+        },
+        right: {
+          value: 7,
+          left: null,
+          right: null
+        }
+      }
+    }
+
+  */
 
   q.add(currNode);
   while (!q.isEmpty()) {
@@ -167,15 +199,15 @@ function listOfDepths(bst) {
 
 /* TEST */
 // 1, 2, 3, 4, 5, 6, 7
-var tree = new BST(4);
-tree.insert(2);
-tree.insert(6);
-tree.insert(1);
-tree.insert(3);
-tree.insert(5);
-tree.insert(7);
+// var tree = new BST(4);
+// tree.insert(2);
+// tree.insert(6);
+// tree.insert(1);
+// tree.insert(3);
+// tree.insert(5);
+// tree.insert(7);
 
-console.log(listOfDepths(tree));
+// console.log(listOfDepths(tree));
 
 
 // /////////////////////////////// //
